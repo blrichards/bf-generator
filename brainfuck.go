@@ -7,35 +7,92 @@ import (
 )
 
 func main() {
+	const UPPER = 0
+	const LOWER = 1
+	const PUNCT = 2
 	toConvert := os.Args[1]
-	last := 0
+	last := [3]int{0, 0, 0}
+	idx := UPPER
+	out := ""
 	for _, r := range toConvert {
 		c := int(r)
-		f := 30
+		f := 7
+		switch {
+		case c >= 'a' && c <= 'z':
+			if idx == UPPER {
+				out += ">>>"
+			} else if idx == PUNCT {
+				out += "<"
+			} else {
+				out += ">"
+			}
+			idx = LOWER
+		case c >= 'A' && c <= 'Z':
+			if idx == LOWER {
+				out += "<"
+			} else if idx == PUNCT {
+				out += "<<<"
+			} else {
+				out += ">"
+			}
+			idx = UPPER
+		default:
+			if idx == UPPER {
+				out += ">>>>>"
+			} else if idx == LOWER {
+				out += ">>>"
+			} else {
+				out += ">"
+			}
+			idx = PUNCT
+		}
 		for ; f > 0; f-- {
-			if int(math.Abs(float64(last-c)))%f == 0 {
+			r := int(math.Abs(float64(last[idx]-c))) % f
+			if r == 0 {
+				break
+			}
+			if r < 4 {
+				out += "<"
+				if last[idx] < c {
+					for ; r > 0; r-- {
+						out += "+"
+					}
+				} else {
+					for ; r > 0; r-- {
+						out += "-"
+					}
+				}
+				out += ">"
 				break
 			}
 		}
 
-		fmt.Print("> ")
 		for i := f; i > 0; i-- {
-			fmt.Print("+")
+			out += "+"
 		}
-		fmt.Print("\n[ < ")
+		out += "[<"
+
+		l := last[idx]
 
 		switch {
-		case last < c:
-			for i := (c - last) / f; i > 0; i-- {
-				fmt.Print("+")
+		case l < c:
+			for i := (c - l) / f; i > 0; i-- {
+				out += "+"
 			}
-		case last > c:
-			for i := (last - c) / f; i > 0; i-- {
-				fmt.Print("-")
+		case l > c:
+			for i := (l - c) / f; i > 0; i-- {
+				out += "-"
 			}
 		}
 
-		fmt.Println(" > - ]\n< .")
-		last = c
+		last[idx] = c
+		out += ">-]<."
+	}
+
+	for i, c := range out {
+		fmt.Printf("%c", c)
+		if i%100 == 99 {
+			fmt.Println()
+		}
 	}
 }
